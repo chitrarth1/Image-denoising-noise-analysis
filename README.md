@@ -173,11 +173,246 @@ $$
 \sigma = 25
 $$
 
-The noise is generated using NumPy:
 
+ 
+## 5. Gaussian Filtering
+ 
+Gaussian filtering is a smoothing operation based on a Gaussian kernel.
+ 
+A two-dimensional Gaussian function is:
+ 
+$$
+G(x,y) = \frac{1}{2\pi\sigma^2} e^{-\frac{x^2+y^2}{2\sigma^2}}
+$$
+ 
+A discrete Gaussian kernel can be represented by a matrix. For example, a simplified $3 \times 3$ Gaussian kernel is:
+ 
+$$
+K = \frac{1}{16}
+\begin{bmatrix}
+1 & 2 & 1 \\
+2 & 4 & 2 \\
+1 & 2 & 1
+\end{bmatrix}
+$$
+ 
+The filtered image is obtained using convolution:
+ 
+$$
+I'(x,y) = \sum_i \sum_j K(i,j) \, I(x-i, y-j)
+$$
+ 
+In this project, OpenCV's Gaussian filter is used:
+ 
 ```python
-noise = np.random.normal(
-    mean,
-    sigma,
-    original_rgb.shape
+gaussian_denoised = cv.GaussianBlur(
+    gaussian,
+    (5, 5),
+    0
 )
+```
+ 
+The kernel size is $5 \times 5$.
+ 
+Gaussian filtering reduces high-frequency variations and smooths the noisy image.
+ 
+---
+ 
+## 6. Median Filtering
+ 
+Median filtering is a nonlinear spatial filtering technique. Unlike averaging filters, the median filter replaces a pixel with the **median** of the pixels in its neighborhood.
+ 
+For example, consider a $3 \times 3$ neighborhood:
+ 
+$$
+\begin{bmatrix}
+10 & 12 & 11 \\
+13 & 255 & 14 \\
+12 & 15 & 13
+\end{bmatrix}
+$$
+ 
+The values are sorted:
+ 
+$$
+10, 11, 12, 12, 13, 13, 14, 15, 255
+$$
+ 
+The median value is $13$.
+ 
+Therefore, the noisy center pixel $255$ is replaced by $13$.
+ 
+This makes median filtering particularly effective for removing impulse noise.
+ 
+The implementation used in this project is:
+ 
+```python
+sp_denoised = cv.medianBlur(
+    sp,
+    5
+)
+```
+ 
+where the neighborhood size is $5 \times 5$.
+ 
+---
+ 
+## 7. Denoising Pipeline
+ 
+The complete experimental pipeline is:
+ 
+```
+                     Original Image
+                           |
+             +-------------+-------------+
+             |                           |
+             v                           v
+       Gaussian Noise              Salt & Pepper Noise
+             |                           |
+             v                           v
+       Noisy Gaussian              Noisy S&P
+             |                           |
+             v                           v
+      Gaussian Filter              Median Filter
+             |                           |
+             v                           v
+    Gaussian Denoised             S&P Denoised
+             |                           |
+             +-------------+-------------+
+                           |
+                           v
+                  Performance Evaluation
+                           |
+                     +-----+-----+
+                     |           |
+                     v           v
+                    MSE         PSNR
+```
+ 
+---
+ 
+## 8. Performance Evaluation
+ 
+Visual inspection provides a basic indication of denoising quality, but quantitative metrics provide an objective comparison. Two metrics are used:
+ 
+- **Mean Squared Error (MSE)**
+- **Peak Signal-to-Noise Ratio (PSNR)**
+---
+ 
+## 9. Mean Squared Error (MSE)
+ 
+Mean Squared Error measures the average squared difference between the original image and the reconstructed image.
+ 
+For an image containing $M \times N$ pixels:
+ 
+$$
+MSE = \frac{1}{MN} \sum_{x=1}^{M} \sum_{y=1}^{N} [I(x,y) - \hat{I}(x,y)]^2
+$$
+ 
+where:
+ 
+- $I(x,y)$ = original image
+- $\hat{I}(x,y)$ = denoised image
+For color images, the calculation is performed across the image channels as well.
+ 
+The implementation is:
+ 
+```python
+mse = np.mean(
+    (original.astype(np.float32) -
+     denoised.astype(np.float32)) ** 2
+)
+```
+ 
+**Interpretation:** Lower MSE ⇒ Better reconstruction.
+ 
+An MSE of zero means that the reconstructed image is identical to the reference image.
+ 
+---
+ 
+## 10. Peak Signal-to-Noise Ratio (PSNR)
+ 
+PSNR is a logarithmic metric used to measure reconstruction quality.
+ 
+For an 8-bit image:
+ 
+$$
+PSNR = 10 \log_{10} \left( \frac{MAX_I^2}{MSE} \right)
+$$
+ 
+where $MAX_I = 255$. Therefore:
+ 
+$$
+PSNR = 10 \log_{10} \left( \frac{255^2}{MSE} \right)
+$$
+ 
+PSNR is measured in decibels (dB).
+ 
+The implementation uses OpenCV:
+ 
+```python
+psnr = cv.PSNR(
+    original,
+    denoised
+)
+```
+ 
+**Interpretation:** Higher PSNR ⇒ Better reconstruction.
+ 
+---
+ 
+## 11. Experimental Parameters
+ 
+| Parameter | Value |
+|---|---|
+| Image Type | RGB |
+| Gaussian Mean | 0 |
+| Gaussian Standard Deviation | 25 |
+| Gaussian Filter Kernel | 5 × 5 |
+| Median Filter Kernel | 5 |
+| Pixel Range | 0–255 |
+| Salt Value | 255 |
+| Pepper Value | 0 |
+ 
+---
+ 
+## 12. Experimental Results
+ 
+The following results were obtained by comparing each denoised image against the original image.
+ 
+| Denoising Method | MSE | PSNR (dB) |
+|---|---|---|
+| Gaussian Denoising | 62.504837 | 30.171667 |
+| Salt & Pepper Denoising | 132.74654 | 26.900572 |
+ 
+---
+ 
+## 13. Results Analysis
+ 
+The Gaussian denoising method produced:
+ 
+- $MSE = 62.504837$
+- $PSNR = 30.171667 \text{ dB}$
+The Salt-and-Pepper denoising method produced:
+ 
+- $MSE = 132.74654$
+- $PSNR = 26.900572 \text{ dB}$
+Therefore:
+ 
+$$
+65.504837 < 132.74654
+$$
+ 
+$$
+33.171667 > 26.900572
+$$
+ 
+Both metrics indicate that the Gaussian-denoised image was closer to the original image for this particular experiment.
+ 
+### Important Observation
+ 
+This result does not imply that Gaussian filtering is universally better than median filtering. The performance of a denoising technique depends heavily on the type of noise it is designed to handle:
+ 
+- **Gaussian filtering** performs well against **Gaussian noise**, since it smooths continuous, small-amplitude variations.
+- **Median filtering** performs well against **impulse (salt-and-pepper) noise**, since it removes extreme outlier values while preserving edges better than linear smoothing filters.
+Using a mismatched filter/noise pair (e.g., Gaussian filtering on salt-and-pepper noise, or median filtering on Gaussian noise) generally yields weaker results than pairing each filter with the noise type it is best suited to remove.
