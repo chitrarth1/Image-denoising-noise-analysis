@@ -1,5 +1,15 @@
 # Image Noise Removal and Denoising Using OpenCV
 
+## Technologies Used
+
+<p align="left">
+  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" width="50" height="50" alt="Python"/>
+  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/opencv/opencv-original.svg" width="50" height="50" alt="OpenCV"/>
+  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/numpy/numpy-original.svg" width="50" height="50" alt="NumPy"/>
+  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/matplotlib/matplotlib-original.svg" width="50" height="50" alt="Matplotlib"/>
+  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/jupyter/jupyter-original.svg" width="50" height="50" alt="Jupyter"/>
+</p>
+
 ## Abstract
 
 Digital images are often affected by noise during image acquisition, transmission, storage, or processing. Different types of noise require different filtering techniques for effective removal.
